@@ -317,7 +317,7 @@ name = "University"
 
     result = runner.invoke(app, ["unset", "--toml-path", str(test_toml_path), "person.education"])
     assert result.exit_code == 0
-    assert "[persion.education]" not in test_toml_path.read_text()
+    assert "[person.education]" not in test_toml_path.read_text()
 
     result = runner.invoke(app, ["unset", "--toml-path", str(test_toml_path), "person"])
     assert result.exit_code == 0

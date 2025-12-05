@@ -15,6 +15,13 @@ app = typer.Typer(no_args_is_help=True)
 DEFAULT_TOML_PATH = pathlib.Path("config.toml")
 
 
+def get_default_toml_path() -> pathlib.Path:
+    toml_files = tuple(pathlib.Path.cwd().glob("*.toml"))
+    if len(toml_files) == 1:
+        return toml_files[0]
+    return DEFAULT_TOML_PATH
+
+
 def path_callback(value: pathlib.Path):
     if not value.exists():
         raise typer.BadParameter(f"{value} does not exists")
@@ -24,7 +31,7 @@ def path_callback(value: pathlib.Path):
 @app.command("get")
 def get(
     key: str | None = typer.Argument(None),
-    toml_path: pathlib.Path = typer.Option(DEFAULT_TOML_PATH, callback=path_callback),
+    toml_path: pathlib.Path = typer.Option(get_default_toml_path, callback=path_callback),
     default: str | None = typer.Option(None),
 ):
     """Get a value from a toml file."""
@@ -71,7 +78,7 @@ def get(
 def set_(
     key: str,
     value: str,
-    toml_path: pathlib.Path = typer.Option(DEFAULT_TOML_PATH, callback=path_callback),
+    toml_path: pathlib.Path = typer.Option(get_default_toml_path, callback=path_callback),
     to_int: bool = typer.Option(False),
     to_float: bool = typer.Option(False),
     to_bool: bool = typer.Option(False),
@@ -133,7 +140,7 @@ def set_(
 @app.command("add_section")
 def add_section(
     key: str,
-    toml_path: pathlib.Path = typer.Option(DEFAULT_TOML_PATH, callback=path_callback),
+    toml_path: pathlib.Path = typer.Option(get_default_toml_path, callback=path_callback),
 ):
     """Add a section with the given key."""
     toml_part = toml_file = tomlkit.parse(toml_path.read_text())
@@ -149,7 +156,7 @@ def add_section(
 @app.command("unset")
 def unset(
     key: str,
-    toml_path: pathlib.Path = typer.Option(DEFAULT_TOML_PATH, callback=path_callback),
+    toml_path: pathlib.Path = typer.Option(get_default_toml_path, callback=path_callback),
 ):
     """Unset a value from a toml file."""
     toml_part = toml_file = tomlkit.parse(toml_path.read_text())
@@ -168,7 +175,7 @@ def unset(
 @app.command("search")
 def search(
     jmespath_expression: str,
-    toml_path: pathlib.Path = typer.Option(DEFAULT_TOML_PATH, callback=path_callback),
+    toml_path: pathlib.Path = typer.Option(get_default_toml_path, callback=path_callback),
 ):
     """Search for a value in a toml file using JMESPath query."""
     toml_data = tomlkit.parse(toml_path.read_text())

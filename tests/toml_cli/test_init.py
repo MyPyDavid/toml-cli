@@ -10,8 +10,7 @@ runner = CliRunner()
 def test_get_value(tmp_path: pathlib.Path):
     "toml_cli.app"
     test_toml_path = tmp_path / "test.toml"
-    test_toml_path.write_text(
-        """
+    test_toml_content = """
 [person]
 name = "MyName"
 age = 12
@@ -29,7 +28,7 @@ year = 2020
 model = "Prius"
 year = 2016
 """
-    )
+    test_toml_path.write_text(test_toml_content)
 
     def get(args, exit_code=0):
         result = runner.invoke(app, args)
@@ -92,6 +91,20 @@ year = 2016
     assert get(["get", "--toml-path", str(test_toml_path), "person.vehicles[122]"], 1) == ""
 
     assert get(["get", "--toml-path", str(test_toml_path), "person.not_existing_key[122]"], 1) == ""
+
+    # without --toml-path, takes a single toml from the cwd when there is only one toml file
+    with runner.isolated_filesystem():
+        # arrange, the test file
+        pathlib.Path("test.toml").write_text(test_toml_content)
+        assert get(["get", "person.addresses"]) == "['Rotterdam', 'Amsterdam']"
+
+        # arrange ,another test file
+        pathlib.Path("another.toml").write_text("another file")
+        assert get(["get", "person.addresses"],2) == ''
+        # arrange, remove the other test file
+        pathlib.Path("another.toml").unlink()
+        assert get(["get", "person.addresses"]) == "['Rotterdam', 'Amsterdam']"
+
 
 
 def test_search(tmp_path: pathlib.Path):
